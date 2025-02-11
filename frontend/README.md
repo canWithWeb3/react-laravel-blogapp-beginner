@@ -1,0 +1,1 @@
+- AppLayout da getAuth yaptım fakat ordan cevap geç gelebilir ve o gelene kadar veriler geç görünebilir
