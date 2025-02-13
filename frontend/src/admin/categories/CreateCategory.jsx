@@ -1,10 +1,10 @@
-import { useFormik } from "formik"
+import { useNavigate } from "react-router-dom"
 import FormInput from "../../components/FormInput"
 import FormButton from "../../components/FormButton"
+import { useFormik } from "formik"
 import axiosAdmin from "../../axios/axiosAdmin"
-import { toast } from "react-toastify"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
 
 const CreateCategory = () => {
     const navigate = useNavigate()
@@ -15,19 +15,16 @@ const CreateCategory = () => {
             name: ''
         },
         onSubmit: async values => {
-            setErrors({})
             try{
                 const { status } = await axiosAdmin.post('/categories', { ...values })
                 if(status === 201){
                     toast.success('Kategori eklendi')
-                    navigate('/admin/kategoriler')
+                    return navigate('/admin/kategoriler')
                 }
             }catch(err){
                 const { status, response: { data: { errors } } } = err
-                if(status == 422){
-                    setErrors(errors)                
-                }else{
-                    toast.error('Bilinmeyen hata')
+                if(status === 422){
+                    setErrors(errors)
                 }
             }
         }
@@ -35,26 +32,31 @@ const CreateCategory = () => {
 
     return (
         <>
-            {/* title and create button */}
-            <div className='flex gap-2 justify-between items-center border-b border-gray-200 pb-2'>
-                <h3 className='text-xl text-green-900 font-medium'>Kategori Ekle</h3>
+            <div className="d-flex justify-content-between align-items-center gap-2">
+                <h1 className="h4 mb-0">Kategori Ekle</h1>
             </div>
 
-            {/* form */}
+            <hr />
+            
             <form onSubmit={handleSubmit}>
-                <div className="grid lg:grid-cols-2 gap-4 my-4">
+                <div className="row">
                     {/* name */}
-                    <FormInput
-                        title="Adı"
-                        name="name"
-                        value={values.name}
-                        handleChange={handleChange}
-                        error={errors.name}
-                    />
+                    <div className="col-md-6">
+                        <FormInput 
+                            title="Adı"
+                            name="name"
+                            handleChange={handleChange}
+                            value={values.name}
+                            error={errors.name}
+                        />
+                    </div> 
 
+                    <div className="col-12">
+                        <FormButton 
+                            isSubmitting={isSubmitting}
+                        />    
+                    </div>                   
                 </div>
-
-                <FormButton isSubmitting={isSubmitting} />
             </form>
         </>
     )

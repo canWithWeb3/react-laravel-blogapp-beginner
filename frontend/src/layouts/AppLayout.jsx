@@ -9,24 +9,23 @@ const AppLayout = () => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const auth_token = JSON.parse(localStorage.getItem('auth_token'))
-        if(auth_token){
-            getAuth()
-                .then(() => setLoading(false))
-        }else{
-            setLoading(false)
-        }
-        setLoading(false)
+        (async () => {
+            await getAuth()
+                .then(setLoading(false))
+        })()
     }, [])
 
-    if(loading)
-        return <Loading />
+    if(loading){
+        <Loading />
+    }
 
     return (
         <>
             <Navbar />
 
-            <Outlet />
+            <main>
+                <Outlet />
+            </main>
         </>
     )
 }

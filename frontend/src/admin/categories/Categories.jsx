@@ -1,66 +1,84 @@
 import { Link } from "react-router-dom"
-import DataTable from 'react-data-table-component';
-import { useContext, useEffect } from "react";
-import CategoryContext from '../../contexts/CategoryContext'
-
-const columns = [
-	{
-		name: 'Adı',
-		selector: row => row.name,
-	},
-    {
-        name: 'İşlemler',
-        selector: row => (
-            <td className="px-6 py-4 whitespace-nowrap">
-                <Link to={`/admin/kategoriler/${row.id}/duzenle`} className="py-1 px-3 border border-amber-300 bg-amber-300 hover:bg-white transition ease-in rounded-lg me-2">
-                    <i className="fas fa-edit me-1.5"></i>
-                    Düzenle
-                </Link>
-
-                <button type="button" className="delete-btn py-1 px-3 border border-red-400 bg-red-400 hover:bg-white transition ease-in rounded-lg cursor-pointer">
-                    <i className="fas fa-trash me-1.5"></i>
-                    Kaldır
-                </button>
-            </td>
-        ),
-        width: '240px'
-    }
-];
-
-const paginationComponentOptions = {
-    rowsPerPageText: 'Sayfa başına satır sayısı',
-    rangeSeparatorText: 'arasında',
-    selectAllRowsItem: true,
-    selectAllRowsItemText: 'Tümünü Seç'
-  };
+import Datatable from "../../components/Datatable"
+import { useContext, useEffect, useState } from "react";
+import AdminContext from '../../contexts/AdminContext'
+import Loading from "../../components/Loading";
+import axiosAdmin from "../../axios/axiosAdmin";
+import { toast } from "react-toastify";
 
 const Categories = () => {
-    const { getCategories, categories } = useContext(CategoryContext)
+    const { getCategories } = useContext(AdminContext)
+    const [categories, setCategories] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        getCategories()
+        (async() => {
+            const categories = await getCategories()
+            setCategories(categories)
+            setLoading(false)
+        })()
     }, [])
 
+    const handleDelete = async (id, name) => {
+        if(confirm(`${name} kategorisini silmek istiyor musunuz?`)){
+            const { status, data: { message } } = await axiosAdmin.delete(`/categories/${id}`)
+            if(status === 200){
+                const categories = await getCategories()
+                setCategories(categories)
+                toast.success(message)
+            }
+        }
+    }
+
+    const columns = [
+        {
+            name: 'Adı',
+            selector: row => row.name,
+        },
+        {
+            name: 'İşlemler',
+            width: '220px',
+            selector: row => (
+                <>
+                    <Link 
+                        to={`/admin/kategoriler/${row.id}/duzenle`}
+                        className="btn btn-warning btn-sm me-2"
+                    >
+                        <i className="fas fa-edit me-1"></i>
+                        Düzenle
+                    </Link>
+
+                    <button
+                        onClick={() => {
+                            handleDelete(row.id, row.name)
+                        }}
+                        className="btn btn-danger btn-sm"
+                    >
+                        <i className="fas fa-trash me-2"></i>
+                        Kaldır
+                    </button>
+                </>
+            )
+        }
+    ];
+    
+    if(loading){
+        return <Loading />
+    }
+    
     return (
         <>
-            {/* title and create button */}
-            <div className='flex gap-2 justify-between items-center border-b border-gray-200 pb-2'>
-                <h3 className='text-xl text-green-900 font-medium'>Kategoriler</h3>
-                <Link to='/admin/kategoriler/ekle' className='bg-lime-500 border border-gray-200 py-1 px-3 rounded-4xl cursor-pointer hover:bg-green-900 hover:text-white ease-in'>
-                <i className="fas fa-plus me-2 font-semibold"></i>
-                    Ekle
-                </Link>
+            <div className="d-flex justify-content-between align-items-center gap-2">
+                <h1 className="h4 mb-0">Kategoriler</h1>
+                <Link to="/admin/kategoriler/ekle" className="btn btn-success"><i className="fas fa-plus"></i> Ekle</Link>
             </div>
 
-            {/* table */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-x-scroll-auto overflow-y-hidden my-6">
-                <DataTable
-                    columns={columns}
-                    data={categories}
-                    paginationComponentOptions={paginationComponentOptions}
-                    pagination
-                />
-            </div>
+            <hr />
+
+            <Datatable 
+                columns={columns}
+                data={categories}
+            />
         </>
     )
 }

@@ -1,72 +1,80 @@
-import { useFormik } from "formik"
+import { useNavigate, useParams } from "react-router-dom"
 import FormInput from "../../components/FormInput"
 import FormButton from "../../components/FormButton"
+import { useFormik } from "formik"
 import axiosAdmin from "../../axios/axiosAdmin"
+import { useEffect, useState } from "react"
 import { toast } from "react-toastify"
-import { useContext, useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import CategoryContext from "../../contexts/CategoryContext"
+import Loading from "../../components/Loading"
 
 const EditCategory = () => {
     const { id } = useParams()
     const navigate = useNavigate()
-    const { getCategoryById } = useContext(CategoryContext)
     const [errors, setErrors] = useState({})
+    const [loading, setLoading] = useState(true)
 
     const { handleSubmit, handleChange, values, isSubmitting, setFieldValue } = useFormik({
         initialValues: {
             name: ''
         },
         onSubmit: async values => {
-            setErrors({})
             try{
-                const res = await axiosAdmin.patch(`/categories/${id}`, { ...values })
-                console.log('res', res)
-                if(res.status === 201){
-                    toast.success('Kategori düzenlendi')
-                    navigate('/admin/kategoriler')
+                const { status } = await axiosAdmin.patch(`/categories/${id}`, { ...values })
+                if(status === 201){
+                    toast.success('Kategori güncellendi')
+                    return navigate('/admin/kategoriler')
                 }
             }catch(err){
-                console.log('err', err)
                 const { status, response: { data: { errors } } } = err
-                if(status == 422){
-                    setErrors(errors)                
-                }else{
-                    toast.error('Bilinmeyen hata')
+                if(status === 422){
+                    setErrors(errors)
                 }
             }
         }
     })
 
     useEffect(() => {
-        (async() => {
-            const { name } = await getCategoryById(id)
-            setFieldValue('name', name)
+        (async () => {
+            const { status, data: { category: { name } } } = await axiosAdmin.get(`/categories/${id}`)
+            if(status === 200){
+                setFieldValue('name', name)
+            }
+
+            setLoading(false)
         })()
     }, [])
 
+    if(loading){
+        return <Loading />
+    }
+
     return (
         <>
-            {/* title and create button */}
-            <div className='flex gap-2 justify-between items-center border-b border-gray-200 pb-2'>
-                <h3 className='text-xl text-green-900 font-medium'>Kategori Düzenle</h3>
+            <div className="d-flex justify-content-between align-items-center gap-2">
+                <h1 className="h4 mb-0">Kategori Düzenle</h1>
             </div>
 
-            {/* form */}
+            <hr />
+            
             <form onSubmit={handleSubmit}>
-                <div className="grid lg:grid-cols-2 gap-4 my-4">
+                <div className="row">
                     {/* name */}
-                    <FormInput
-                        title="Adı"
-                        name="name"
-                        value={values.name}
-                        handleChange={handleChange}
-                        error={errors.name}
-                    />
+                    <div className="col-md-6">
+                        <FormInput 
+                            title="Adı"
+                            name="name"
+                            handleChange={handleChange}
+                            value={values.name}
+                            error={errors.name}
+                        />
+                    </div> 
 
+                    <div className="col-12">
+                        <FormButton 
+                            isSubmitting={isSubmitting}
+                        />    
+                    </div>                   
                 </div>
-
-                <FormButton isSubmitting={isSubmitting} />
             </form>
         </>
     )

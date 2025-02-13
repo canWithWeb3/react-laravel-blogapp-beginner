@@ -14,7 +14,7 @@ class CategoryController extends ApiController
      */
     public function index()
     {
-        $categories = Category::orderByName()->withTrashed()->get();
+        $categories = Category::orderByName()->get();
 
         return $this->success([
             'categories' => $categories
@@ -40,7 +40,7 @@ class CategoryController extends ApiController
      */
     public function show(string $id)
     {
-        $category = Category::withTrashed()->findOrFail($id);
+        $category = Category::findOrFail($id);
 
         return $this->success([
             'category' => $category
@@ -54,8 +54,7 @@ class CategoryController extends ApiController
     {
         $inputs = $request->only(['name']);
 
-        $category = Category::withTrashed()
-                ->findOrFail($id)
+        $category = Category::findOrFail($id)
                 ->update($inputs);
 
         return $this->success([
@@ -69,18 +68,12 @@ class CategoryController extends ApiController
      */
     public function destroy(string $id)
     {
-        $category = Category::withTrashed()->findOrFail($id);
+        $category = Category::findOrFail($id);
 
-        if($category->trashed()){
-            $message = 'Kategori aktif yapıldı';
-            $category->restore();
-        }else{
-            $message = 'Kategori pasif yapıldı';
-            $category->delete();
-        }
+        $category->delete();
 
         return $this->success([
-            'message' => $message
+            'message' => 'Kategori silindi'
         ], 200);
     }
 }

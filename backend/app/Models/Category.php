@@ -10,7 +10,7 @@ use Cocur\Slugify\Slugify;
 
 class Category extends Model
 {
-    use HasFactory, SoftDeletes, Sluggable;
+    use HasFactory, Sluggable;
 
     protected $guarded = [];
 

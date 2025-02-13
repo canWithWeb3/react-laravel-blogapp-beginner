@@ -29,7 +29,11 @@ class AuthController extends ApiController
         if (!$user || !Hash::check($request->password, $user->password))
             return $this->error([
                 'message' => 'E-posta veya parola hatalı'
-            ]);
+            ], 401);
+
+        // $user->token->revoke();
+
+        // $request->session()->regenerateToken();
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

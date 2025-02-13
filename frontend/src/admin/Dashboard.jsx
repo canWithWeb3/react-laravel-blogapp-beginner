@@ -1,8 +1,13 @@
+import { useContext } from "react"
+import AuthContext from "../contexts/AuthContext"
+
 const Dashboard = () => {
+    const { user } = useContext(AuthContext)
+
     return (
-        <div>
-            Dashboard
-        </div>
+        <>
+            Dashboard { JSON.stringify(user, 2, null)}
+        </>
     )
 }
 

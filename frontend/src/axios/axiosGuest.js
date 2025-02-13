@@ -1,22 +1,24 @@
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const axiosGuest = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL
-});
+    baseURL: import.meta.env.VITE_API_URL
+})
+
+axiosGuest.interceptors.request.use(function (config) {
+    return config;
+  }, function (error) {
+    return Promise.reject(error);
+  });
 
 axiosGuest.interceptors.response.use(function (response) {
     return response;
   }, function (error) {
-    console.log('error', error)
-    const { status } = error
-    
-    if(status === 401)
-        return toast.error('Yetkiniz yok')
 
-    if(status === 500)
-        return toast.error('Bilinmeyen Hata')
-    
+    if(error?.status === 500){
+      toast.error('axiosGuest Error')
+    }
+
     return Promise.reject(error);
   });
 

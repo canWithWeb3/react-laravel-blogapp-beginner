@@ -1,77 +1,104 @@
-import { useFormik } from "formik"
-import {useState } from "react"
-import axiosGuest from "../axios/axiosGuest"
+import { Helmet } from "react-helmet"
 import FormInput from "../components/FormInput"
+import { useFormik } from "formik"
+import { useContext, useState } from "react"
 import FormButton from "../components/FormButton"
+import axiosGuest from "../axios/axiosGuest"
 import { toast } from "react-toastify"
 import { useNavigate } from "react-router-dom"
+import AuthContext from "../contexts/AuthContext"
+import Error from "../components/Error"
 
 const Login = () => {
     const navigate = useNavigate()
+    const { getAuth } = useContext(AuthContext)
     const [errors, setErrors] = useState({})
+    const [error, setError] = useState("")
 
-    const { handleSubmit, handleChange, isSubmitting } = useFormik({
+    const { handleSubmit, handleChange, values, isSubmitting } = useFormik({
         initialValues: {
             email: '',
-            password: '',
+            password: ''
         },
         onSubmit: async values => {
             try{
                 setErrors({})
-                const { status, data: { token, role } } = await axiosGuest.post('/auth/login', { ...values })
-                console.log('role', role)
+                setError("")
+                const { status, data: { message, token, role } } = await axiosGuest.post('/auth/login', { ...values })
                 if(status === 201){
                     localStorage.setItem('auth_token', JSON.stringify(token))
-                    toast.success('Giriş yapıldı')
-                    if(role == 'admin'){
-                        return navigate('/admin')
+                    await getAuth()
+                    toast.success(message)
+                    if(role === 'admin'){
+                        return navigate('/admin') 
                     }
-
                     return navigate('/')
                 }
             }catch(err){
-                const { response: { status, data: { errors } } } = err
-                if(status === 422)
+                console.log('err', err)
+                const { status, response: { data: { errors, message } } } = err
+                if(status === 422){
                     setErrors(errors)
+                }else if(status === 401){
+                    setError(message)
+                }
             }
         }
     })
 
     return (
-        <div className="container">
-            <div className="col-xl-5 col-lg-7 col-md-9 mx-auto my-5">
-                <div className="card">
-                    <div className="card-header">Giriş Yap</div>
-                    <div className="card-body">
-                        <form onSubmit={handleSubmit}>
-                            {/* email */}
-                            <FormInput
-                                type="email"
-                                title="E-posta"
-                                name="email"
-                                handleChange={handleChange}
-                                error={errors?.email}
-                            />
+        <>
+            <Helmet>
+                <title>Giriş yap</title>    
+            </Helmet>            
 
-                            {/* password */}
-                            <FormInput
-                                type="password"
-                                title="Parola"
-                                name="password"
-                                handleChange={handleChange}
-                                error={errors?.password}
-                            />
+            <div className="container my-5">
+                <div className="col-xl-5 col-lg-7 mx-auto">
+                    <div className="card">
+                        <div className="card-header">Giriş yap</div>
+                        <div className="card-body">
+                            <Error error={error} />
 
-                            {/* submit button */}
-                            <FormButton 
-                                title="Giriş Yap" 
-                                isSubmitting={isSubmitting} 
-                            />
-                        </form>
+                            <form onSubmit={handleSubmit}>
+                                <div className="row g-3">
+                                    {/* email */}
+                                    <div className="col-12">
+                                        <FormInput 
+                                            type="email"
+                                            title="E-posta"
+                                            name="email"
+                                            handleChange={handleChange}
+                                            value={values.email}
+                                            error={errors.email}
+                                        />
+                                    </div>
+
+                                    {/* password */}
+                                    <div className="col-12">
+                                        <FormInput 
+                                            type="password"
+                                            title="Parola"
+                                            name="password"
+                                            handleChange={handleChange}
+                                            value={values.password}
+                                            error={errors.password}
+                                        />
+                                    </div>
+
+                                    {/* button submit */}
+                                    <div className="col-12">
+                                        <FormButton 
+                                            title="Giriş yap"
+                                            isSubmitting={isSubmitting}
+                                        />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }
 

@@ -1,1 +1,1 @@
-- AppLayout da getAuth yaptım fakat ordan cevap geç gelebilir ve o gelene kadar veriler geç görünebilir
+- AppLayout da getAuth yaptığımda veri gelene kadar navbar da username gözükmüyo

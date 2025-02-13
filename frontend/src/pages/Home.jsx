@@ -1,8 +1,12 @@
+import Helmet from "../components/Helmet"
+
 const Home = () => {
     return (
-        <div>
+        <>
+            <Helmet title="Anasayfa" />
+            
             Home
-        </div>
+        </>
     )
 }
 
